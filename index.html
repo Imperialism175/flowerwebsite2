@@ -29,11 +29,20 @@
 
     <header class="top">
       <a class="logo" href="#top"><span aria-hidden="true">✿</span> flowertalker</a>
-      <div class="daytime" aria-live="off">
-        <span id="clock">06:40</span>
-        <span id="daylabel">утро</span>
+      <div class="top-right">
+        <button id="music" class="music" type="button" aria-pressed="false" aria-label="Включить музыку">
+          <span aria-hidden="true">♪</span>
+        </button>
+        <div class="daytime" aria-live="off">
+          <span id="clock">06:40</span>
+          <span id="daylabel">утро</span>
+        </div>
       </div>
     </header>
+
+    <aside id="musicdock" class="musicdock" aria-label="Музыка: Flower Man / DELTARUNE Chapter 5 [Music Box], R3 Music Box">
+      <div id="ytplayer"></div>
+    </aside>
 
     <div class="progress" aria-hidden="true"><i></i></div>
 

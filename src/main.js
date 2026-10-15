@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { content } from './content.js';
 import { createScene } from './scene.js';
 import { renderPage, initStickers } from './ui.js';
+import { initMusic } from './music.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,6 +14,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
 renderPage(content);
+initMusic();
 
 let scene = null;
 try {

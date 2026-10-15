@@ -216,6 +216,85 @@ h2 {
   color: var(--ink-soft);
 }
 
+.top-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.music {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--ink-soft);
+  font-size: 17px;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.music:hover {
+  transform: scale(1.08);
+}
+
+.music:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.music[aria-pressed='true'] {
+  color: var(--gold);
+}
+
+.music[aria-pressed='true'] span {
+  display: inline-block;
+  animation: bob 1.6s ease-in-out infinite;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-2px) rotate(-8deg);
+  }
+}
+
+/* сам плеер YouTube: маленькая карточка, видна, пока играет музыка */
+.musicdock {
+  position: fixed;
+  left: clamp(10px, 2vw, 26px);
+  bottom: clamp(10px, 2vw, 26px);
+  z-index: 9;
+  width: 200px;
+  height: 113px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s 0.5s;
+}
+
+.music-on .musicdock {
+  opacity: 0.92;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.musicdock iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .progress {
   position: fixed;
   right: clamp(10px, 2vw, 26px);
