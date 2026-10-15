@@ -6,6 +6,8 @@ import { content } from './content.js';
 import { createScene } from './scene.js';
 import { renderPage, initStickers } from './ui.js';
 import { initMusic } from './music.js';
+import { initSfx, sfx } from './sfx.js';
+import { initAdmin, loadContent } from './admin.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,8 +15,12 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // история всегда начинается с рассвета
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 window.scrollTo(0, 0);
-renderPage(content);
-initMusic();
+// черновик из админки (если есть) показывается только в этом браузере
+const site = loadContent(content);
+renderPage(site);
+initMusic(site.music);
+initSfx();
+initAdmin(content);
 
 let scene = null;
 try {
@@ -167,6 +173,10 @@ if (!reduced) {
 }
 
 initStickers(document.querySelector('.board'));
+document.querySelectorAll('.sticker').forEach((el) => {
+  el.addEventListener('pointerdown', sfx.pick);
+  el.addEventListener('pointerup', sfx.drop);
+});
 
 // ---------- посадить цветок ночью ----------
 const GARDEN_KEY = 'flowertalker-garden';
@@ -191,6 +201,7 @@ if (scene) {
       /* без памяти — просто не сохраним */
     }
     counter.textContent = scene.planted.length;
+    sfx.plant();
     const tip = document.querySelector('.plant-tip');
     tip.classList.add('done');
   });

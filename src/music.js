@@ -1,5 +1,6 @@
 // фоновая музыка: звук из YouTube-плеера, сам плеер скрыт
-const VIDEO_ID = 'vhrHa8lmj6o';
+import { setSfxEnabled, sfx } from './sfx.js';
+
 const PREF_KEY = 'flowertalker:music';
 
 function readPref() {
@@ -33,7 +34,7 @@ function loadApi() {
   });
 }
 
-export function initMusic() {
+export function initMusic({ youtube: VIDEO_ID = 'vhrHa8lmj6o', volume = 20 } = {}) {
   const btn = document.querySelector('#music');
   const dock = document.querySelector('#musicdock');
   if (!btn || !dock) return;
@@ -60,7 +61,7 @@ export function initMusic() {
             playerVars: { loop: 1, playlist: VIDEO_ID, playsinline: 1, rel: 0 },
             events: {
               onReady: (e) => {
-                e.target.setVolume(45);
+                e.target.setVolume(volume);
                 resolve(player);
               },
               onStateChange: (e) => {
@@ -87,11 +88,17 @@ export function initMusic() {
     player?.pauseVideo();
   };
 
+  // кнопка ♪ выключает весь звук сайта: и музыку, и эффекты
+  setSfxEnabled(readPref() !== 'off');
   btn.addEventListener('click', () => {
     if (playing) {
+      sfx.close();
+      setSfxEnabled(false);
       pause();
       savePref('off');
     } else {
+      setSfxEnabled(true);
+      sfx.open();
       play();
       savePref('on');
     }

@@ -45,6 +45,16 @@ export function renderPage(c) {
         <dl class="facts">
           ${c.about.facts.map((f) => `<div><dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd></div>`).join('')}
         </dl>
+        ${(c.about.folds || [])
+          .map(
+            (f) => `
+        <details class="fold" open>
+          <summary>${esc(f.title)}</summary>
+          ${(f.items || []).map((it) => `<p><b>${esc(it.label)}</b> — <span>${esc(it.value)}</span></p>`).join('')}
+          ${f.text ? `<p class="fold-text">${esc(f.text)}</p>` : ''}
+        </details>`,
+          )
+          .join('')}
         <div class="about-flower">${poppy()}</div>
       </article>
     </section>
@@ -84,7 +94,9 @@ export function renderPage(c) {
               (w, i) => `
             <div class="card widget" data-reveal>
               <p class="w-title">${esc(w.title)}</p>
-              <p class="w-value">${esc(w.value)}</p>
+              <p class="w-value">${
+                w.href ? `<a href="${esc(w.href)}" target="_blank" rel="noopener">${esc(w.value)} <span>↗</span></a>` : esc(w.value)
+              }</p>
               ${i === 0 ? '<span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>' : ''}
             </div>`,
             )

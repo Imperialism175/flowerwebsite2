@@ -467,6 +467,52 @@ h2 {
   filter: drop-shadow(0 8px 14px rgba(140, 70, 0, 0.35));
 }
 
+.fold {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(255, 247, 226, 0.35);
+  border: 1px solid var(--glass-line);
+  font-size: 15px;
+}
+
+.fold summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.fold summary::-webkit-details-marker {
+  display: none;
+}
+
+.fold summary::after {
+  content: '⌃';
+  transition: transform 0.3s ease;
+}
+
+.fold:not([open]) summary::after {
+  transform: rotate(180deg);
+}
+
+.fold p {
+  margin: 8px 0 0;
+}
+
+.fold p span,
+.fold-text {
+  color: var(--ink-soft);
+}
+
+.w-value a {
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+}
+
 /* грядки */
 .interests {
   height: 100vh;
@@ -940,4 +986,183 @@ body.can-plant {
     opacity: 1;
     filter: none;
   }
+}
+
+/* ---------- тайная админка ---------- */
+.adm-open,
+.adm-open body {
+  overflow: hidden;
+}
+
+.adm {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(40, 24, 6, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-family: var(--sans);
+  color: #3a230c;
+}
+
+.adm-box {
+  width: min(720px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: #fff8ea;
+  box-shadow: 0 30px 80px -20px rgba(60, 30, 0, 0.6);
+}
+
+.adm-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--serif);
+  font-size: 24px;
+}
+
+.adm-head b {
+  color: #b7780f;
+  font-weight: 600;
+}
+
+.adm-x,
+.adm-del {
+  border: 0;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b4a22;
+}
+
+.adm-note {
+  font-size: 13px;
+  color: #6b4a22;
+  margin: 6px 0 12px;
+}
+
+.adm-group {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 1px solid #ecd9b0;
+  border-radius: 12px;
+}
+
+.adm-group legend {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #b7780f;
+}
+
+.adm-item {
+  position: relative;
+  padding: 4px 28px 4px 0;
+  border-bottom: 1px dashed #ecd9b0;
+}
+
+.adm-del {
+  position: absolute;
+  top: 6px;
+  right: 0;
+}
+
+.adm-f {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0;
+  font-size: 12px;
+  color: #6b4a22;
+}
+
+.adm-f input,
+.adm-f textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #e3c991;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: #3a230c;
+  resize: vertical;
+}
+
+.adm-f input:focus,
+.adm-f textarea:focus {
+  outline: 2px solid #d99a1e;
+  outline-offset: 1px;
+}
+
+.adm-add {
+  margin-top: 6px;
+  border: 1px dashed #d99a1e;
+  border-radius: 8px;
+  background: none;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: #b7780f;
+  cursor: pointer;
+}
+
+.adm-gh {
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.adm-gh summary {
+  cursor: pointer;
+  color: #b7780f;
+  font-weight: 600;
+}
+
+.adm-foot {
+  position: sticky;
+  bottom: -20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0 4px;
+  background: #fff8ea;
+}
+
+.adm-foot button {
+  padding: 9px 16px;
+  border: 1px solid #d99a1e;
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: #3a230c;
+  cursor: pointer;
+}
+
+.adm-foot .adm-main {
+  background: #d99a1e;
+  color: #fff;
+}
+
+.adm-foot .adm-ghost {
+  border-color: transparent;
+  color: #6b4a22;
+}
+
+.adm-foot button:disabled {
+  opacity: 0.5;
+}
+
+.adm-status {
+  min-height: 1.2em;
+  font-size: 13px;
+  margin: 6px 0 0;
 }
