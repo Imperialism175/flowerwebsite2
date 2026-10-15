@@ -16,7 +16,17 @@ renderPage(content);
 
 let scene = null;
 try {
-  scene = createScene(document.querySelector('#field'), { reducedMotion: reduced });
+  // лучи и блики линзы рисуются поверх сцены там, где сейчас солнце
+  const sunfx = document.querySelector('#sunfx');
+  scene = createScene(document.querySelector('#field'), {
+    reducedMotion: reduced,
+    onSun({ x, y, strength, color }) {
+      sunfx.style.setProperty('--sx', x.toFixed(4));
+      sunfx.style.setProperty('--sy', y.toFixed(4));
+      sunfx.style.setProperty('--ss', strength.toFixed(3));
+      sunfx.style.setProperty('--sc', color);
+    },
+  });
 } catch (err) {
   // без WebGL остаётся тёплый градиент и вся история
   console.warn('WebGL недоступен', err);

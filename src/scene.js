@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 // Поле золотых маков на калифорнийских холмах. Прокрутка (0..1) двигает камеру
 // по маршруту и ведёт день от утра к ночи.
@@ -24,9 +28,9 @@ export function groundHeight(x, z) {
 
 // Время суток: ключевые точки прокрутки и палитра неба.
 const PHASES = [
-  { p: 0.0, top: '#e7b866', horizon: '#ffe6b3', bottom: '#d9b46a', sun: '#fff0c4', elev: 0.32, light: 2.6, hemi: 1.1, night: 0 },
-  { p: 0.35, top: '#d79a4f', horizon: '#ffd28a', bottom: '#cf9a52', sun: '#ffd27a', elev: 0.16, light: 2.4, hemi: 0.95, night: 0 },
-  { p: 0.62, top: '#6e4a7a', horizon: '#ff9a5c', bottom: '#a8603f', sun: '#ff7a3d', elev: 0.03, light: 1.6, hemi: 0.6, night: 0.1 },
+  { p: 0.0, top: '#e7b866', horizon: '#ffe6b3', bottom: '#d9b46a', sun: '#fff0c4', elev: 0.32, light: 3.6, hemi: 0.7, night: 0 },
+  { p: 0.35, top: '#d79a4f', horizon: '#ffd28a', bottom: '#cf9a52', sun: '#ffd27a', elev: 0.16, light: 3.4, hemi: 0.6, night: 0 },
+  { p: 0.62, top: '#6e4a7a', horizon: '#ff9a5c', bottom: '#a8603f', sun: '#ff7a3d', elev: 0.03, light: 2.4, hemi: 0.45, night: 0.1 },
   { p: 0.8, top: '#1c1c45', horizon: '#6b4a7a', bottom: '#2a2240', sun: '#ff9a7a', elev: -0.05, light: 0.5, hemi: 0.35, night: 0.6 },
   { p: 1.0, top: '#060a1e', horizon: '#1d2348', bottom: '#0b0f24', sun: '#b9c6ff', elev: 0.28, light: 0.35, hemi: 0.25, night: 1 },
 ];
@@ -60,7 +64,7 @@ const CAM_LOOK = [
   [0, 2.2, -150],
 ].map((v) => new THREE.Vector3(...v));
 
-export function createScene(canvas, { reducedMotion = false } = {}) {
+export function createScene(canvas, { reducedMotion = false, onSun = null } = {}) {
   const mobile = Math.min(window.innerWidth, window.innerHeight) < 700;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.5 : 1.75));
@@ -85,6 +89,9 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     uTime: { value: 0 },
     uPointer: { value: new THREE.Vector2(999, 999) },
     uGrow: { value: reducedMotion ? 1 : 0 },
+    // солнце в координатах камеры — для просвечивания лепестков и травы
+    uSunView: { value: new THREE.Vector3(0, 0, -1) },
+    uSunCol: { value: new THREE.Color() },
   };
 
   // --- свет ---
@@ -170,7 +177,10 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     groundGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     groundGeo.computeVertexNormals();
   }
-  const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, envMapIntensity: 0.2 }));
+  const ground = new THREE.Mesh(
+    groundGeo,
+    new THREE.MeshStandardMaterial({ vertexColors: true, map: groundTexture(renderer), roughness: 1, envMapIntensity: 0.2 }),
+  );
   scene.add(ground);
 
   // --- поле: трава и маки ---
@@ -178,16 +188,27 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
   const grassCount = mobile ? 9000 : 24000;
   const flowerCount = mobile ? 11000 : 32000;
 
-  const grass = new THREE.InstancedMesh(grassGeometry(), windMaterial(shared, { roughness: 0.9, envMapIntensity: 0.3 }), grassCount);
-  const flowers = new THREE.InstancedMesh(poppyGeometry(), windMaterial(shared, { roughness: 0.5, metalness: 0.15, envMapIntensity: 0.6 }), flowerCount);
+  const pathGrassCount = mobile ? 14000 : 42000;
+
+  const grassMat = windMaterial(shared, { roughness: 0.75, envMapIntensity: 0.3 }, 1.1);
+  const grass = new THREE.InstancedMesh(grassGeometry(), grassMat, grassCount);
+  const flowers = new THREE.InstancedMesh(poppyGeometry(), windMaterial(shared, { roughness: 0.38, metalness: 0.1, envMapIntensity: 0.6 }, 1.6), flowerCount);
   scatter(grass, grassCount, () => true, [0.6, 1.2]);
+
+  // густой подшёрсток вдоль маршрута камеры: на крупных планах земля не голая
+  const pathGrass = new THREE.InstancedMesh(grassGeometry(), grassMat, pathGrassCount);
+  scatter(pathGrass, pathGrassCount, () => true, [0.35, 1.1], () => [
+    ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * 16,
+    THREE.MathUtils.lerp(64, -150, Math.random()),
+  ]);
+  scene.add(pathGrass);
   scatter(flowers, flowerCount, (x, z) => {
     // маки растут пятнами, как настоящее поле
     return Math.random() < 0.15 + poppyPatch(x, z) * 0.85;
   }, [0.8, 1.45]);
   scene.add(grass, flowers);
 
-  function scatter(mesh, count, accept, [smin, smax]) {
+  function scatter(mesh, count, accept, [smin, smax], sample = null) {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
     const e = new THREE.Euler();
@@ -199,8 +220,9 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     let guard = 0;
     while (i < count && guard++ < count * 20) {
       // гуще вдоль тропинки камеры, реже к краям
-      const x = ((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * FIELD.x;
-      const z = THREE.MathUtils.lerp(FIELD.zNear, FIELD.zFar, Math.random());
+      const [x, z] = sample
+        ? sample()
+        : [((Math.random() + Math.random() + Math.random()) / 1.5 - 1) * FIELD.x, THREE.MathUtils.lerp(FIELD.zNear, FIELD.zFar, Math.random())];
       if (!accept(x, z)) continue;
       // оставляем немного места вокруг главного цветка
       if (Math.hypot(x - HERO_POS.x, z - HERO_POS.z) < 1.1) continue;
@@ -310,6 +332,7 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     sun.intensity = THREE.MathUtils.lerp(a.light, b.light, t);
     sun.position.copy(camera.position).addScaledVector(sunDir, 50);
     sun.target.position.copy(camera.position);
+    shared.uSunCol.value.copy(sun.color).multiplyScalar(sun.intensity * 0.13 * (1 - night * 0.9));
     hemi.color.copy(skyUniforms.uTop.value).lerp(new THREE.Color('#fff2d0'), 0.5 * (1 - night));
     hemi.groundColor.copy(skyUniforms.uBottom.value);
     hemi.intensity = THREE.MathUtils.lerp(a.hemi, b.hemi, t);
@@ -319,8 +342,36 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     renderer.toneMappingExposure = THREE.MathUtils.lerp(1.05, 0.85, night);
     starMat.opacity = THREE.MathUtils.smoothstep(night, 0.4, 1);
     motes.uniforms.uNight.value = night;
+    motes.uniforms.uSunDir.value.copy(sunDir);
     plantMat.emissiveIntensity = night * 0.9;
     hero.setNight(night);
+  }
+
+  // постобработка: мягкое свечение солнца, бликов и светлячков
+  let composer = null;
+  let bloomPass = null;
+  if (!mobile) {
+    const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+    composer = new EffectComposer(renderer, rt);
+    composer.addPass(new RenderPass(scene, camera));
+    bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.5, 1.0);
+    composer.addPass(bloomPass);
+    composer.addPass(new OutputPass());
+  }
+
+  const sunWorld = new THREE.Vector3();
+  const sunNdc = new THREE.Vector3();
+  const camDir = new THREE.Vector3();
+  function reportSun() {
+    shared.uSunView.value.copy(sunDir).transformDirection(camera.matrixWorldInverse);
+    if (!onSun) return;
+    sunWorld.copy(camera.position).addScaledVector(sunDir, 400);
+    sunNdc.copy(sunWorld).project(camera);
+    const ahead = sunDir.dot(camera.getWorldDirection(camDir)) > 0;
+    const night = skyUniforms.uNight.value;
+    const edge = 1 - THREE.MathUtils.smoothstep(Math.max(Math.abs(sunNdc.x), Math.abs(sunNdc.y)), 0.7, 1.25);
+    const strength = ahead ? edge * (1 - THREE.MathUtils.smoothstep(night, 0.05, 0.5)) * THREE.MathUtils.smoothstep(sunDir.y, -0.03, 0.06) : 0;
+    onSun({ x: (sunNdc.x + 1) / 2, y: (1 - sunNdc.y) / 2, strength, color: skyUniforms.uSunColor.value.getStyle() });
   }
 
   function resize() {
@@ -329,6 +380,8 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
     camera.fov = camera.aspect < 0.8 ? 62 : 50;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer?.setPixelRatio(renderer.getPixelRatio());
+    composer?.setSize(window.innerWidth, window.innerHeight);
     motes.uniforms.uPixelRatio.value = renderer.getPixelRatio();
   }
   window.addEventListener('resize', resize);
@@ -372,7 +425,14 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
       m.rotation.z = Math.sin(time * 1.2 + m.position.x) * 0.04;
     }
 
-    renderer.render(scene, camera);
+    camera.updateMatrixWorld();
+    reportSun();
+    if (composer) {
+      bloomPass.strength = THREE.MathUtils.lerp(0.35, 0.8, skyUniforms.uNight.value);
+      composer.render(dt);
+    } else {
+      renderer.render(scene, camera);
+    }
   }
   renderer.setAnimationLoop(frame);
 
@@ -398,10 +458,34 @@ export function createScene(canvas, { reducedMotion = false } = {}) {
 // ---------- материалы и геометрия ----------
 
 // Ветер, «прорастание» и отклик на курсор — прямо в вершинном шейдере.
-function windMaterial(shared, params) {
+// Плюс просвечивание на контровом свете и затенение у корней.
+function windMaterial(shared, params, translucency = 1) {
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, side: THREE.DoubleSide, ...params });
   mat.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, shared);
+    Object.assign(shader.uniforms, shared, { uTransK: { value: translucency } });
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+        uniform vec3 uSunView;
+        uniform vec3 uSunCol;
+        uniform float uTransK;
+        varying float vHeight;`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+        // у земли темнее — стебли затеняют друг друга
+        diffuseColor.rgb *= mix(0.42, 1.0, smoothstep(0.0, 0.55, vHeight));`,
+      )
+      .replace(
+        '#include <opaque_fragment>',
+        `vec3 toFrag = normalize(-vViewPosition);
+        float back = pow(max(dot(toFrag, uSunView), 0.0), 7.0);
+        float rim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.0);
+        outgoingLight += diffuseColor.rgb * uSunCol * uTransK * back * (0.25 + vHeight + rim * 0.6);
+        #include <opaque_fragment>`,
+      );
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -410,7 +494,8 @@ function windMaterial(shared, params) {
         uniform vec2 uPointer;
         uniform float uGrow;
         attribute float aPhase;
-        attribute float aDelay;`,
+        attribute float aDelay;
+        varying float vHeight;`,
       )
       .replace(
         '#include <project_vertex>',
@@ -420,6 +505,7 @@ function windMaterial(shared, params) {
         vec4 wp = instanceMatrix * vec4(local, 1.0);
         vec3 root = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
         float h = max(local.y, 0.0);
+        vHeight = clamp(transformed.y / 0.75, 0.0, 1.0);
         float bend = h * h;
         float gust = sin(uTime * 0.6 + root.x * 0.05 + root.z * 0.04) * 0.5 + 0.5;
         float w = sin(uTime * 1.6 + root.x * 0.18 + root.z * 0.12 + aPhase * 6.283) * (0.08 + gust * 0.1)
@@ -435,6 +521,39 @@ function windMaterial(shared, params) {
       );
   };
   return mat;
+}
+
+// Земля в мелкую травинку и сухие стебельки, чтобы вблизи не было гладкой заливки.
+function groundTexture(renderer) {
+  const size = 512;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#d8cfae';
+  g.fillRect(0, 0, size, size);
+  const tones = ['#8a8a3c', '#a59a4a', '#6f6a2c', '#c9b46a', '#e8d898', '#5d5a26', '#b3893c'];
+  for (let i = 0; i < 9000; i++) {
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const len = 4 + Math.random() * 14;
+    const a = Math.random() * Math.PI;
+    g.strokeStyle = tones[(Math.random() * tones.length) | 0];
+    g.globalAlpha = 0.25 + Math.random() * 0.5;
+    g.lineWidth = 0.6 + Math.random() * 1.4;
+    g.beginPath();
+    // рисуем и со сдвигом на размер холста, чтобы текстура повторялась без шва
+    for (const [ox, oy] of [[0, 0], [size, 0], [-size, 0], [0, size], [0, -size]]) {
+      g.moveTo(x + ox, y + oy);
+      g.lineTo(x + ox + Math.cos(a) * len, y + oy + Math.sin(a) * len);
+    }
+    g.stroke();
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(70, 90);
+  tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return tex;
 }
 
 function paint(geo, colorFn) {
@@ -621,6 +740,7 @@ function pollen(count, pixelRatio) {
     uTime: { value: 0 },
     uNight: { value: 0 },
     uCam: { value: new THREE.Vector3() },
+    uSunDir: { value: new THREE.Vector3(0, 0.3, -1) },
     uPixelRatio: { value: pixelRatio },
   };
   const points = new THREE.Points(
@@ -632,7 +752,7 @@ function pollen(count, pixelRatio) {
       blending: THREE.AdditiveBlending,
       vertexShader: /* glsl */ `
         uniform float uTime, uNight, uPixelRatio;
-        uniform vec3 uCam;
+        uniform vec3 uCam, uSunDir;
         attribute float aSeed;
         varying float vAlpha;
         void main() {
@@ -647,6 +767,9 @@ function pollen(count, pixelRatio) {
           float blink = mix(1.0, smoothstep(0.2, 1.0, sin(uTime * 1.7 + aSeed * 40.0) * 0.5 + 0.5), uNight);
           gl_PointSize = mix(2.4, 7.0, uNight) * (0.5 + aSeed) * uPixelRatio * (24.0 / max(-mv.z, 0.5));
           vAlpha = blink * smoothstep(55.0, 6.0, -mv.z) * smoothstep(0.2, 1.2, -mv.z);
+          // пылинки вспыхивают, когда висят в лучах против солнца
+          vec3 toP = normalize(p - uCam);
+          vAlpha *= 1.0 + pow(max(dot(toP, normalize(uSunDir)), 0.0), 6.0) * 3.0 * (1.0 - uNight);
         }`,
       fragmentShader: /* glsl */ `
         uniform float uNight;
@@ -656,7 +779,7 @@ function pollen(count, pixelRatio) {
           float a = smoothstep(0.5, 0.0, d);
           vec3 day = vec3(1.0, 0.85, 0.45);
           vec3 night = vec3(0.85, 1.0, 0.45);
-          gl_FragColor = vec4(mix(day, night, uNight), a * a * vAlpha * mix(0.55, 1.0, uNight));
+          gl_FragColor = vec4(mix(day, night * 2.2, uNight), a * a * vAlpha * mix(0.55, 1.0, uNight));
         }`,
     }),
   );

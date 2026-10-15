@@ -56,6 +56,62 @@ body {
   z-index: 0;
 }
 
+/* солнце: ореол, лучи и блики линзы — позиция приходит из 3D-сцены */
+#sunfx {
+  --sx: 0.5;
+  --sy: 0.1;
+  --ss: 0;
+  --sc: #fff0c4;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  opacity: var(--ss);
+}
+
+#sunfx .glare,
+#sunfx .rays,
+#sunfx i {
+  position: absolute;
+  left: calc(var(--sx) * 100%);
+  top: calc(var(--sy) * 100%);
+  translate: -50% -50%;
+  border-radius: 50%;
+}
+
+#sunfx .glare {
+  width: 90vmax;
+  height: 90vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sc) 70%, white) 0%, color-mix(in srgb, var(--sc) 35%, transparent) 8%, transparent 45%);
+  opacity: 0.55;
+}
+
+#sunfx .rays {
+  width: 160vmax;
+  height: 160vmax;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--sc) 55%, transparent) 0deg 1.6deg, transparent 2.4deg 9deg, color-mix(in srgb, var(--sc) 30%, transparent) 10deg 11deg, transparent 12deg 17deg);
+  -webkit-mask: radial-gradient(circle, black 0%, rgba(0, 0, 0, 0.35) 12%, transparent 38%);
+  mask: radial-gradient(circle, black 0%, rgba(0, 0, 0, 0.35) 12%, transparent 38%);
+  opacity: 0.35;
+  animation: spin 160s linear infinite;
+}
+
+/* блики выстраиваются по линии «солнце → центр экрана → дальше» */
+#sunfx i {
+  left: calc((var(--sx) + (0.5 - var(--sx)) * var(--t)) * 100%);
+  top: calc((var(--sy) + (0.5 - var(--sy)) * var(--t)) * 100%);
+  width: var(--s);
+  height: var(--s);
+  opacity: var(--o);
+  background: radial-gradient(circle, color-mix(in srgb, var(--sc) 60%, #ffe2a0) 0%, color-mix(in srgb, var(--sc) 30%, transparent) 55%, transparent 72%);
+}
+
+#sunfx i.ring {
+  background: radial-gradient(circle, transparent 58%, rgba(255, 210, 140, 0.55) 64%, rgba(160, 220, 255, 0.35) 68%, transparent 74%);
+}
+
 /* лёгкая плёночная зернистость и виньетка поверх 3D */
 .veil {
   position: fixed;
