@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>flowertalker — золотое поле</title>
+    <meta name="description" content="Личный сад flowertalker: поле золотых маков, увлечения и история одного дня от утра до ночи." />
+    <meta name="theme-color" content="#f3d79a" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="veil" aria-hidden="true"></div>
+
+    <header class="top">
+      <a class="logo" href="#top"><span aria-hidden="true">✿</span> flowertalker</a>
+      <div class="daytime" aria-live="off">
+        <span id="clock">06:40</span>
+        <span id="daylabel">утро</span>
+      </div>
+    </header>
+
+    <div class="progress" aria-hidden="true"><i></i></div>
+
+    <main id="story"></main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
