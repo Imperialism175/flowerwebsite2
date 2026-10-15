@@ -84,13 +84,13 @@
       ]
     },
     {
-      "emoji": "📚",
-      "title": "Книги",
-      "text": "Магический реализм, японская проза и стихи, которые хочется переписывать от руки.",
+      "emoji": "👥",
+      "title": "Друзья",
+      "text": "Те, которые могут сказать обо мне самое плохое.",
       "tags": [
-        "стихи",
-        "проза",
-        "перечитываю"
+        "дружба",
+        "веселье",
+        "атмосфера"
       ]
     },
     {
@@ -111,8 +111,8 @@
       "href": "https://www.youtube.com/watch?v=vhrHa8lmj6o"
     },
     {
-      "title": "Читаю",
-      "value": "Харуки Мураками — «Норвежский лес»"
+      "title": "Играю",
+      "value": "The Elder's Scrolls V: Skyrim"
     },
     {
       "title": "Настроение",
@@ -127,15 +127,15 @@
   "links": [
     {
       "label": "Telegram",
-      "href": "https://t.me/"
+      "href": "https://t.me/flowertalkerr"
     },
     {
       "label": "Steam",
-      "href": "https://steamcommunity.com/"
+      "href": "https://steamcommunity.com/id/flowertalkerr/"
     },
     {
-      "label": "Pinterest",
-      "href": "https://pinterest.com/"
+      "label": "Discord",
+      "href": "https://discord.com/channels/@me/846417638111314001"
     },
     {
       "label": "GitHub",
@@ -145,6 +145,6 @@
   "outro": "Нажми на землю — и посади свой золотой цветок.",
   "music": {
     "youtube": "vhrHa8lmj6o",
-    "volume": 20
+    "volume": 10
   }
 }
