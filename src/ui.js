@@ -113,8 +113,10 @@ export function renderPage(c) {
     </section>
 
     <section class="chapter quote" id="quote" data-chapter>
-      <p class="eyebrow">глава IV · закат</p>
-      <blockquote>${words}</blockquote>
+      <div class="quote-pin">
+        <p class="eyebrow">глава IV · закат</p>
+        <blockquote>${words}</blockquote>
+      </div>
     </section>
 
     <section class="chapter night" id="night" data-chapter>

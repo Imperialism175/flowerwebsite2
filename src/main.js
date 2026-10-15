@@ -165,9 +165,16 @@ if (!reduced) {
   });
 
   // заголовки глав слегка плывут
-  gsap.utils.toArray('.chapter h2').forEach((h) =>
-    gsap.fromTo(h, { yPercent: 30 }, { yPercent: -30, ease: 'none', scrollTrigger: { trigger: h, scrub: true } }),
-  );
+  // подпись «глава …» плывёт вместе с заголовком, чтобы он на неё не наезжал
+  gsap.utils.toArray('.chapter h2').forEach((h) => {
+    const tag = h.previousElementSibling?.matches('.eyebrow') ? h.previousElementSibling : null;
+    const shift = () => h.offsetHeight * 0.3;
+    gsap.fromTo(
+      [tag, h].filter(Boolean),
+      { y: shift },
+      { y: () => -shift(), ease: 'none', scrollTrigger: { trigger: h, scrub: true, invalidateOnRefresh: true } },
+    );
+  });
 } else {
   document.documentElement.classList.add('reduced');
 }

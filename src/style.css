@@ -745,15 +745,14 @@ h2 {
   text-align: center;
 }
 
-.quote .eyebrow {
+/* подпись и цитата прилипают вместе — так они не наезжают друг на друга */
+.quote-pin {
   position: sticky;
   top: 24vh;
 }
 
 .quote blockquote {
-  position: sticky;
-  top: 30vh;
-  margin: 0 auto;
+  margin: 20px auto 0;
   max-width: 17ch;
   font-family: var(--serif);
   font-style: italic;
