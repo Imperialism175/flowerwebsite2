@@ -55,7 +55,7 @@ export const content = {
 
   // Виджеты «сейчас» — как на strawpage.
   now: [
-    { title: 'Сейчас играет', value: 'Beach House — Myth' },
+    { title: 'Сейчас играет', value: 'Flower Man [Music Box]' },
     { title: 'Читаю', value: 'Харуки Мураками — «Норвежский лес»' },
     { title: 'Настроение', value: 'золотой час 🌅' },
     { title: 'Статус', value: 'поливаю мысли' },

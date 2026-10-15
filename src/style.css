@@ -263,36 +263,15 @@ h2 {
   }
 }
 
-/* сам плеер YouTube: маленькая карточка, видна, пока играет музыка */
+/* плеер YouTube нужен только ради звука — убран за пределы экрана */
 .musicdock {
   position: fixed;
-  left: clamp(10px, 2vw, 26px);
-  bottom: clamp(10px, 2vw, 26px);
-  z-index: 9;
+  left: -9999px;
+  top: 0;
   width: 200px;
   height: 113px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--glass-line);
-  box-shadow: var(--shadow);
   opacity: 0;
-  visibility: hidden;
-  transform: translateY(12px);
-  transition: opacity 0.5s ease, transform 0.5s ease, visibility 0s 0.5s;
-}
-
-.music-on .musicdock {
-  opacity: 0.92;
-  visibility: visible;
-  transform: none;
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.musicdock iframe {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 0;
+  pointer-events: none;
 }
 
 .progress {

@@ -1,4 +1,4 @@
-// фоновая музыка: официальный YouTube-плеер, маленькой карточкой в углу
+// фоновая музыка: звук из YouTube-плеера, сам плеер скрыт
 const VIDEO_ID = 'vhrHa8lmj6o';
 const PREF_KEY = 'flowertalker:music';
 
